@@ -30,6 +30,7 @@ const querystring = require('querystring')
 //   }
 // })
 
+// 简单范例
 const server = http.createServer((req, res) => {
   const method = req.method
   const url = req.url
