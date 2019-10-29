@@ -1,5 +1,6 @@
 const { login } = require('../controller/user')
 const { SuccessModel, ErrorModel } = require('../model/resModel')
+const { set } = require('../db/redis')
 
 const getCookieExpires = () => {
   const d = new Date()
@@ -15,13 +16,15 @@ const handleUserRouter = (req, res) => {
   // 暂时修改为GET方法
   if (method === 'GET' && path === '/api/user/login') {
     const { username, password } = req.query
+    // const { username, password } = req.body
     const result = login(username, password)
     return result.then(data => {
       if (data.username) {
         // session
         req.session.username = data.username
         req.session.realname = data.realname
-        console.log(req.session);
+        // 同步到redis
+        set(req.sessionId, req.session)
         return new SuccessModel('登录成功')
       } else {
         return new ErrorModel('登录失败')
@@ -29,15 +32,15 @@ const handleUserRouter = (req, res) => {
     })
   }
   // 登录验证测试
-  if (method === 'GET' && path === '/api/user/login-test') {
-    if (req.session.username) {
-      return Promise.resolve(new SuccessModel({
-        session: req.session
-      }))
-    } else {
-      return Promise.resolve(new ErrorModel('尚未登录'))
-    }
-  }
+  // if (method === 'GET' && path === '/api/user/login-test') {
+  //   if (req.session.username) {
+  //     return Promise.resolve(new SuccessModel({
+  //       session: req.session
+  //     }))
+  //   } else {
+  //     return Promise.resolve(new ErrorModel('尚未登录'))
+  //   }
+  // }
 }
 
 module.exports = handleUserRouter
