@@ -18,9 +18,18 @@ const handleBlogRouter = (req, res) => {
   const id = req.query.id
   // 获取博客列表
   if (method === 'GET' && path === '/api/blog/list') {
-    const { author, keyword } = query
+    let { author, keyword } = query
     // const listData = getList(author, keyword)
     // return new SuccessModel(listData)
+    if(req.query.isadmin) {
+      const loginCheckResult = loginCheck(req)
+      if(loginCheckResult) {
+        //未登录
+        return loginCheckResult
+      }
+      // 强制检查
+      author = req.session.username
+    }
     const result = getList(author, keyword)
     return result.then(listData => {
       return new SuccessModel(listData)
@@ -44,7 +53,7 @@ const handleBlogRouter = (req, res) => {
 
     const loginCheckResult = loginCheck(req)
     if(loginCheckResult) {
-      return loginCheck
+      return loginCheckResult
     }
 
     req.body.author = req.session.username
@@ -56,10 +65,10 @@ const handleBlogRouter = (req, res) => {
 
   // 更新博客
   if (method === 'POST' && path === '/api/blog/update') {
-
+    // 如果传入的内容有代码，则会导致sql语句出错
     const loginCheckResult = loginCheck(req)
     if(loginCheckResult) {
-      return loginCheck
+      return loginCheckResult
     }
     const result = updateBlog(id, req.body)
     return result.then(val => {
@@ -75,7 +84,7 @@ const handleBlogRouter = (req, res) => {
   if (method === 'POST' && path === '/api/blog/del') {
     const loginCheckResult = loginCheck(req)
     if(loginCheckResult) {
-      return loginCheck
+      return loginCheckResult
     }
     req.body.author = req.session.username
     const result = deleBlog(id, req.body.author)
